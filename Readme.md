@@ -14,6 +14,7 @@ This is the setup for a Raspberry Pi from scratch to setup Plex Server, a Torren
 - [Install Plex Server](#install-plex-server)
 - [View Plex Server](#view-plex-server)
 - [Install and Use Deluge](#install-and-use-deluge)
+- [TODO](#todo)
 
 ## Burning
 
@@ -61,7 +62,7 @@ sudo apt-get install apt-transport-https -y
 wget -O - https://dev2day.de/pms/dev2day-pms.gpg.key | sudo apt-key add -
 echo "deb https://dev2day.de/pms/ jessie main" | sudo tee /etc/apt/sources.list.d/pms.list
 sudo apt-get update
-sudo apt-get install -t jessie plexmediaserver
+sudo apt-get install -t jessie plexmediaserver -y
 sudo mkdir -p /srv/movies
 ```
 
@@ -78,7 +79,7 @@ sudo mkdir -p /srv/movies
 
 ## Install and Use Deluge
 
-1. `sudo apt-get install deluged deluge-web`
+1. `sudo apt-get install deluged deluge-web -y`
 2. `deluged`
 3. `deluge-web`
 4. View deluge web ui at: `http://192.168.0.200:8112/`
