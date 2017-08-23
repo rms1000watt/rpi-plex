@@ -14,6 +14,8 @@ This is the setup for a Raspberry Pi from scratch to setup Plex Server, a Torren
 - [Install Plex Server](#install-plex-server)
 - [View Plex Server](#view-plex-server)
 - [Install and Use Deluge](#install-and-use-deluge)
+- [Install and Use PIA OpenVPN](#install-and-use-pia-openvpn)
+- [Startup Script](#startup-script)
 - [TODO](#todo)
 
 ## Burning
@@ -81,14 +83,72 @@ sudo mkdir -p /srv/movies
 
 1. `sudo apt-get install deluged deluge-web -y`
 2. `deluged`
-3. `deluge-web`
+3. `nohup deluge-web &`
 4. View deluge web ui at: `http://192.168.0.200:8112/`
 5. Default password is: `deluge` (change that when prompted)
-6. When you're done, stop deluged: `pkill deluged`
+6. When you're done, stop deluged: `pkill deluged; pkill deluge-web`
+
+## Install and Use PIA OpenVPN
+
+Use an OpenVPN client for Private Internet Access (PIA) 
+
+1. Run commands below:
+
+```bash
+# Install and setup OpenVPN for PIA
+sudo apt-get install openvpn
+cd /etc/openvpn
+sudo wget https://www.privateinternetaccess.com/openvpn/openvpn.zip
+sudo unzip openvpn.zip
+
+# Replace with actual username and pass
+printf "ACTUAL_PIA_USERNAME\nACTUAL_PIA_PASSWORD\n" | sudo tee auth.txt
+sudo chmod 600 auth.txt
+sudo mv US\ Silicon\ Valley.ovpn US-Silicon-Valley.ovpn
+if ! grep -q /etc/openvpn US-Silicon-Valley.ovpn; then sudo sed -i 's|crl-verify crl.rsa.2048.pem|crl-verify /etc/openvpn/crl.rsa.2048.pem|g' US-Silicon-Valley.ovpn && sudo sed -i 's|ca ca.rsa.2048.crt|ca /etc/openvpn/ca.rsa.2048.crt|g' US-Silicon-Valley.ovpn; fi
+if ! grep -q auth.txt US-Silicon-Valley.ovpn; then sudo sed -i 's|auth-user-pass|auth-user-pass /etc/openvpn/auth.txt|g' US-Silicon-Valley.ovpn; fi
+
+# To the file below, add: AUTOSTART="US-Silicon-Valley"
+sudo nano /etc/default/openvpn
+
+# Add DNS entries that will populate resolv.conf on reboot
+printf "nameserver 8.8.8.8\nnameserver 193.43.27.132\nnameserver 193.43.27.133\n" | sudo tee /etc/resolv.conf.head
+
+# Use PIA
+sudo openvpn /etc/openvpn/US-Silicon-Valley.ovpn 
+sudo nohup openvpn /etc/openvpn/US-Silicon-Valley.ovpn &
+sudo openvpn --config 'US-Silicon-Valley.ovpn' --daemon
+```
+
+## Startup Script
+
+```bash
+cat << EOF > startup.sh 
+echo "Restarting Plex"
+sudo service plexmediaserver restart
+
+echo "Quitting deluge"
+pkill deluge
+
+echo "Starting deluged"
+deluged
+
+echo "Starting deluge web"
+nohup deluge-web &
+
+echo "Starting OpenVPN"
+sudo nohup openvpn /etc/openvpn/US-Silicon-Valley.ovpn &
+
+sleep 5
+echo "Startup Done"
+EOF
+
+chmod a+x startup.sh
+```
 
 ## TODO
 
 - [x] Update password
 - [x] Install Plex Server
-- [ ] Configure Deluge Service
+- [x] Configure Deluge Service
 - [ ] Install Private Internet Access
