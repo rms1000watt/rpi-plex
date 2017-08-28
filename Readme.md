@@ -15,6 +15,7 @@ This is the setup for a Raspberry Pi from scratch to setup Plex Server, a Torren
 - [View Plex Server](#view-plex-server)
 - [Install and Use Deluge](#install-and-use-deluge)
 - [Install and Use PIA OpenVPN](#install-and-use-pia-openvpn)
+- [Fix VPN Routing](#fix-vpn-routing)
 - [Startup Script](#startup-script)
 - [TODO](#todo)
 
@@ -118,6 +119,40 @@ printf "nameserver 8.8.8.8\nnameserver 193.43.27.132\nnameserver 193.43.27.133\n
 sudo openvpn /etc/openvpn/US-Silicon-Valley.ovpn 
 sudo nohup openvpn /etc/openvpn/US-Silicon-Valley.ovpn &
 sudo openvpn --config 'US-Silicon-Valley.ovpn' --daemon
+```
+
+## Fix VPN Routing
+
+PIA/OpenVPN will configure your route table `route -n` with:
+
+```
+10.94.10.5      0.0.0.0         255.255.255.255 UH    0      0        0 tun0
+```
+
+While your actual `tun0` ip address is `10.94.10.6` and has an `ifconfig` record of:
+
+```
+tun0: flags=4305<UP,POINTOPOINT,RUNNING,NOARP,MULTICAST>  mtu 1500
+        inet 10.94.10.6  netmask 255.255.255.255  destination 10.94.10.5
+```
+
+Your route table `route -n` should look like:
+
+```
+10.94.10.5      10.94.10.6         255.255.255.255 UH    0      0        0 tun0
+```
+
+So, you can run these command on startup to clean and properly configure the VPN Client:
+
+```bash
+cd ~
+cat << EOF > up.sh
+ip route del $(ifconfig | grep -A 1 tun0 | grep inet | awk '{print $6}') via default
+ip route add $(ifconfig | grep -A 1 tun0 | grep inet | awk '{print $6}') via $(ifconfig | grep -A 1 tun0 | grep inet | awk '{print $2}')
+EOF
+
+sudo mv up.sh /etc/openvpn/up.sh
+sudo bash /etc/openvpn/up.sh
 ```
 
 ## Startup Script
