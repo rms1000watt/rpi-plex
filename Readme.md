@@ -147,10 +147,11 @@ So, you can run these command on startup to clean and properly configure the VPN
 ```bash
 cd ~
 cat << EOF > up.sh
-ip route del $(ifconfig | grep -A 1 tun0 | grep inet | awk '{print $6}') via default
-ip route add $(ifconfig | grep -A 1 tun0 | grep inet | awk '{print $6}') via $(ifconfig | grep -A 1 tun0 | grep inet | awk '{print $2}')
+ip route del \$(ifconfig | grep -A 1 tun0 | grep inet | awk '{print \$6}') via default
+ip route add \$(ifconfig | grep -A 1 tun0 | grep inet | awk '{print \$6}') via \$(ifconfig | grep -A 1 tun0 | grep inet | awk '{print \$2}')
 EOF
 
+chmod a+x up.sh
 sudo mv up.sh /etc/openvpn/up.sh
 sudo bash /etc/openvpn/up.sh
 ```
@@ -182,6 +183,13 @@ chmod a+x startup.sh
 ```
 
 ## TODO
+
+Figure this out..
+
+```bash
+up /etc/openvpn/up.sh
+script-security 2
+```
 
 - [x] Update password
 - [x] Install Plex Server
