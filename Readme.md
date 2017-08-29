@@ -54,6 +54,17 @@ This is the setup for a Raspberry Pi from scratch to setup Plex Server, a Torren
 5. Reboot: `sudo reboot`
 6. SSH into the RPi at the new static IP: `ssh pi@192.168.0.200`
 
+## Disable IPv6
+
+1. Run the command below:
+
+```bash
+if ! grep -q disable_ipv6 /etc/sysctl.conf; then printf "net.ipv6.conf.all.disable_ipv6 = 1\nnet.ipv6.conf.default.disable_ipv6 = 1\nnet.ipv6.conf.lo.disable_ipv6 = 1\n" | sudo tee -a /etc/sysctl.conf; fi
+```
+
+2. `sudo reboot`
+6. SSH into the RPi: `ssh pi@192.168.0.200`
+
 ## Install Plex Server
 
 1. Run commands below:
@@ -166,12 +177,15 @@ echo "Starting deluge web"
 nohup deluge-web &
 
 echo "Starting OpenVPN"
-sudo nohup openvpn /etc/openvpn/US-Silicon-Valley.ovpn &
-
-echo "Fixing Route"
-sudo bash /etc/openvpn/fix-route.sh
+cd /etc/openvpn
+sudo nohup openvpn US-Silicon-Valley.ovpn &
 
 sleep 5
+
+echo "Fixing Route"
+cd /etc/openvpn
+sudo bash /etc/openvpn/fix-route.sh
+
 echo "Startup Done"
 EOF
 
