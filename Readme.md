@@ -108,17 +108,10 @@ sudo chmod 600 auth.txt
 sudo mv US\ Silicon\ Valley.ovpn US-Silicon-Valley.ovpn
 if ! grep -q /etc/openvpn US-Silicon-Valley.ovpn; then sudo sed -i 's|crl-verify crl.rsa.2048.pem|crl-verify /etc/openvpn/crl.rsa.2048.pem|g' US-Silicon-Valley.ovpn && sudo sed -i 's|ca ca.rsa.2048.crt|ca /etc/openvpn/ca.rsa.2048.crt|g' US-Silicon-Valley.ovpn; fi
 if ! grep -q auth.txt US-Silicon-Valley.ovpn; then sudo sed -i 's|auth-user-pass|auth-user-pass /etc/openvpn/auth.txt|g' US-Silicon-Valley.ovpn; fi
+if ! grep -q update-resolv-conf US-Silicon-Valley.ovpn; then printf "up /etc/openvpn/update-resolv-conf\ndown /etc/openvpn/update-resolv-conf\nscript-security 2\n" | sudo tee -a /etc/openvpn/US-Silicon-Valley.ovpn; fi
 
-# To the file below, add: AUTOSTART="US-Silicon-Valley"
-sudo nano /etc/default/openvpn
-
-# Add DNS entries that will populate resolv.conf on reboot
-printf "nameserver 8.8.8.8\nnameserver 193.43.27.132\nnameserver 193.43.27.133\n" | sudo tee /etc/resolv.conf.head
-
-# Use PIA
-sudo openvpn /etc/openvpn/US-Silicon-Valley.ovpn 
+# Connect to PIA servers with OpenVPN
 sudo nohup openvpn /etc/openvpn/US-Silicon-Valley.ovpn &
-sudo openvpn --config 'US-Silicon-Valley.ovpn' --daemon
 ```
 
 ## Fix VPN Routing
@@ -146,14 +139,14 @@ So, you can run these command on startup to clean and properly configure the VPN
 
 ```bash
 cd ~
-cat << EOF > up.sh
+cat << EOF > fix-route.sh
 ip route del \$(ifconfig | grep -A 1 tun0 | grep inet | awk '{print \$6}') via default
 ip route add \$(ifconfig | grep -A 1 tun0 | grep inet | awk '{print \$6}') via \$(ifconfig | grep -A 1 tun0 | grep inet | awk '{print \$2}')
 EOF
 
-chmod a+x up.sh
-sudo mv up.sh /etc/openvpn/up.sh
-sudo bash /etc/openvpn/up.sh
+chmod a+x fix-route.sh
+sudo mv fix-route.sh /etc/openvpn/fix-route.sh
+sudo bash /etc/openvpn/fix-route.sh
 ```
 
 ## Startup Script
@@ -175,6 +168,9 @@ nohup deluge-web &
 echo "Starting OpenVPN"
 sudo nohup openvpn /etc/openvpn/US-Silicon-Valley.ovpn &
 
+echo "Fixing Route"
+sudo bash /etc/openvpn/fix-route.sh
+
 sleep 5
 echo "Startup Done"
 EOF
@@ -183,13 +179,6 @@ chmod a+x startup.sh
 ```
 
 ## TODO
-
-Figure this out..
-
-```bash
-up /etc/openvpn/up.sh
-script-security 2
-```
 
 - [x] Update password
 - [x] Install Plex Server
