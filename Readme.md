@@ -17,7 +17,9 @@ This is the setup for a Raspberry Pi from scratch to setup Plex Server, a Torren
 - [Install and Use PIA OpenVPN](#install-and-use-pia-openvpn)
 - [Fix VPN Routing](#fix-vpn-routing)
 - [Startup Script](#startup-script)
-- [TODO](#todo)
+- [Fixing Your Router](#fixing-your-router)
+- [Deluge](#deluge)
+- [Disclaimer](#disclaimer)
 
 ## Burning
 
@@ -95,10 +97,9 @@ sudo mkdir -p /srv/movies
 
 1. `sudo apt-get install deluged deluge-web -y`
 2. `deluged`
-3. `nohup deluge-web &`
-4. View deluge web ui at: `http://192.168.0.200:8112/`
-5. Default password is: `deluge` (change that when prompted)
-6. When you're done, stop deluged: `pkill deluged; pkill deluge-web`
+3. View deluge web ui at: `http://192.168.0.200:8112/`
+4. Default password is: `deluge` (change that when prompted)
+5. When you're done, stop deluged: `pkill deluged`
 
 ## Install and Use PIA OpenVPN
 
@@ -173,9 +174,6 @@ pkill deluge
 echo "Starting deluged"
 deluged
 
-echo "Starting deluge web"
-nohup deluge-web &
-
 echo "Starting OpenVPN"
 cd /etc/openvpn
 sudo nohup openvpn US-Silicon-Valley.ovpn &
@@ -192,9 +190,32 @@ EOF
 chmod a+x startup.sh
 ```
 
-## TODO
+Then on startup, run:
 
-- [x] Update password
-- [x] Install Plex Server
-- [x] Configure Deluge Service
-- [ ] Install Private Internet Access
+```bash
+./startup.sh
+```
+
+## Fixing Your Router
+
+So, at the end of the day, you've ran all of these commands. However, you're still not connecting to the internet. The issue is most likely that your router doesn't have a route setup for you to hit PIA/OpenVPN.
+
+Log into your router and add this route:
+
+```
+Destination: 10.94.10.5
+Netmask: 255.255.255.255
+Gateway: 0.0.0.0
+```
+
+Then you should be all good to go.
+
+## Deluge
+
+```bash
+deluge-console
+```
+
+## Disclaimer
+
+**These techonologies are only intended for educational usage**
