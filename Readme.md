@@ -38,7 +38,7 @@ This is the setup for a Raspberry Pi from scratch to setup Plex Server, a Torren
 
 1. `brew install nmap`
 2. `nmap -sn 192.168.0.1/24`
-3. `ssh pi@192.168.0.135`
+3. `ssh -o IdentitiesOnly=yes pi@192.168.0.135`
 4. Password is `raspberry`
 
 ## Change Password
@@ -100,6 +100,8 @@ sudo mkdir -p /srv/movies
 3. View deluge web ui at: `http://192.168.0.200:8112/`
 4. Default password is: `deluge` (change that when prompted)
 5. When you're done, stop deluged: `pkill deluged`
+
+Alternatively, you can use `deluge-console` on the command line
 
 ## Install and Use PIA OpenVPN
 
